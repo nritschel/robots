@@ -23,9 +23,9 @@ html {
 }
 
 #leftdiv {
-    width: calc(50vw + 63px - 8px);
+    width: calc(48vw);
 }
 
 #rightdiv {
-    width: calc(50vw - 63px - 8px);
+    width: calc(48vw);
 }

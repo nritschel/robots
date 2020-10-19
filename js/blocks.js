@@ -4,21 +4,100 @@ Blockly.defineBlocksWithJsonArray([
     // Start
     {
         "type": "custom_start",
-        "message0": "When %1 pressed, robot does this:",
-        "args0": [
-          {
-            "type": "field_image",
-            "src": "https://www.gstatic.com/codesite/ph/images/star_on.gif", //change to own image
-            "width": 15,
-            "height": 15,
-            "alt": "play button",
-            "flipRtl": false
-          }
-        ],
+        "message0": "Repeat until stopped",
         "nextStatement": null,
         "colour": 15,
         "tooltip": "",
         "helpUrl": ""
+    },
+    {
+        "type": "custom_taskheader",
+        "message0": "At %1: %2",
+        "args0": [
+            {
+                "type": "field_dropdown",
+                "name": "SITE",
+                "options": [
+                [
+                    "Site...",
+                    "NONE"
+                ],
+                [
+                    "My Site",
+                    "MYSITE"
+                ]
+                ]
+            },
+            {
+                "type": "field_label_serializable",
+                "name": "TASK",
+                
+            }
+        ],
+        "inputsInline": false,
+        "nextStatement": null,
+        "colour": 50,
+        "tooltip": "",
+        "helpUrl": "",
+    },
+    // Move somewhere
+    {
+        "type": "custom_task",
+        "message0": "At %1: %2",
+        "args0": [
+            {
+                "type": "field_dropdown",
+                "name": "SITE",
+                "options": [
+                [
+                    "Site...",
+                    "NONE"
+                ],
+                [
+                    "My Site",
+                    "MYSITE"
+                ]
+                ]
+            },
+            {
+                "type": "field_label_serializable",
+                "name": "TASK",
+
+            }
+        ],
+        "inputsInline": false,
+        "previousStatement": null,
+        "nextStatement": null,
+        "colour": 50,
+        "tooltip": "",
+        "helpUrl": "",
+    },
+    // Move somewhere
+    {
+        "type": "custom_newtask",
+        "message0": "At %1: Perform new task...",
+        "args0": [
+            {
+                "type": "field_dropdown",
+                "name": "SITE",
+                "options": [
+                [
+                    "Site...",
+                    "NONE"
+                ],
+                [
+                    "My Site",
+                    "MYSITE"
+                ]
+                ]
+            }
+        ],
+        "inputsInline": false,
+        "previousStatement": null,
+        "nextStatement": null,
+        "colour": 50,
+        "tooltip": "",
+        "helpUrl": "",
     },
     // Move somewhere
     {
@@ -57,46 +136,6 @@ Blockly.defineBlocksWithJsonArray([
         "helpUrl": "",
         "mutator": "move_mutator"
     },
-    // Follow movement
-    {
-        "type": "custom_follow",
-        "message0": "Follow other arm",
-        "previousStatement": null,
-        "nextStatement": null,
-        "colour": 50,
-        "tooltip": "",
-        "helpUrl": ""
-    },
-    // Mirror movement
-    {
-        "type": "custom_mirror",
-        "message0": "Mirror other arm",
-        "previousStatement": null,
-        "nextStatement": null,
-        "colour": 50,
-        "tooltip": "",
-        "helpUrl": ""
-    },
-    // Follow movement (toolbox version for connecting to move)
-    {
-        "type": "custom_toolbox_follow",
-        "message0": "Follow other arm",
-        "inputsInline": false,
-        "output": null,
-        "colour": 50,
-        "tooltip": "",
-        "helpUrl": ""
-    },
-    // Follow movement (toolbox version for connecting to move)
-    {
-        "type": "custom_toolbox_mirror",
-        "message0": "Mirror other arm",
-        "inputsInline": false,
-        "output": null,
-        "colour": 50,
-        "tooltip": "",
-        "helpUrl": ""
-    },
     // Open hand
     {
         "type": "custom_open",
@@ -117,18 +156,95 @@ Blockly.defineBlocksWithJsonArray([
         "tooltip": "",
         "helpUrl": ""
     },
-    // Wait for the other
-    {
-        "type": "custom_wait",
-        "message0": "Wait for each other",
-        "previousStatement": null,
-        "nextStatement": null,
-        "colour": "#888",
-        "tooltip": "",
-        "helpUrl": ""
-    }
 ]);
 
+var nameUsedWithAnyType = function(name, workspace) {
+  var allTasks = workspace.getVariableMap().getAllVariables();
+
+  name = name.toLowerCase();
+  for (var i = 0, task; (task = allTasks[i]); i++) {
+    if (task.name.toLowerCase() == name) {
+      return task;
+    }
+  }
+  return null;
+};
+
+var createTaskButtonHandler = function(
+    workspace, opt_callback) {
+  // This function needs to be named so it can be called recursively.
+  var promptAndCheckWithAlert = function(defaultName) {
+    Blockly.Variables.promptName("Please enter a name for the new task:", defaultName,
+        function(text) {
+          if (text) {
+            var existing =
+                nameUsedWithAnyType(text, workspace);
+            if (existing) {
+              var msg = "A task with name '%1' already exists!".replace(
+                '%1', existing.name);              
+              Blockly.alert(msg,
+                  function() {
+                    promptAndCheckWithAlert(text);  // Recurse
+                  });
+            } else {
+              // No conflict
+              workspace.createVariable(text, '');
+              if (opt_callback) {
+                opt_callback(text);
+              }
+            }
+          } else {
+            // User canceled prompt.
+            if (opt_callback) {
+              opt_callback(null);
+            }
+          }
+        });
+  };
+  promptAndCheckWithAlert('');
+};
+
+
+var flyoutCategory = function(workspace) {
+  var xmlList = [];
+  var button = document.createElement('button');
+  button.setAttribute('text', 'Perform new task...');
+  button.setAttribute('callbackKey', 'CREATE_TASK');
+
+  workspace.registerButtonCallback('CREATE_TASK', function(button) {
+    createTaskButtonHandler(button.getTargetWorkspace());
+  });
+
+  xmlList.push(button);
+
+  var blockList = flyoutCategoryBlocks(workspace);
+  xmlList = xmlList.concat(blockList);
+  return xmlList;
+};
+
+var flyoutCategoryBlocks = function(workspace) {
+  var taskList = workspace.getVariablesOfType('');
+
+  var xmlList = [];
+  for (var i = 0, task; (task = taskList[i]); i++) {
+    // New variables are added to the end of the variableModelList.
+    var block = Blockly.utils.xml.createElement('block');
+    block.setAttribute('type', 'custom_task');
+    block.appendChild(
+        generateTaskFieldDom(task));
+    xmlList.push(block);
+  }
+  return xmlList;
+};
+
+var generateTaskFieldDom = function(task) {
+  var field = Blockly.utils.xml.createElement('field');
+  field.setAttribute('name', 'TASK');
+  field.setAttribute('id', task.getId());
+  var name = Blockly.utils.xml.createTextNode(task.name);
+  field.appendChild(name);
+  return field;
+};
 
 // Controls whether move blocks have a value input at the end.
 
