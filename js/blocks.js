@@ -36,7 +36,7 @@ Blockly.defineBlocksWithJsonArray([
         ],
         "inputsInline": false,
         "nextStatement": null,
-        "colour": 50,
+        "colour": 185,
         "tooltip": "",
         "helpUrl": "",
     },
@@ -68,7 +68,7 @@ Blockly.defineBlocksWithJsonArray([
         "inputsInline": false,
         "previousStatement": null,
         "nextStatement": null,
-        "colour": 50,
+        "colour": 185,
         "tooltip": "",
         "helpUrl": "",
     },
@@ -95,7 +95,7 @@ Blockly.defineBlocksWithJsonArray([
         "inputsInline": false,
         "previousStatement": null,
         "nextStatement": null,
-        "colour": 50,
+        "colour": 185,
         "tooltip": "",
         "helpUrl": "",
     },
@@ -208,7 +208,8 @@ var createTaskButtonHandler = function(
 var flyoutCategory = function(workspace) {
   var xmlList = [];
   var button = document.createElement('button');
-  button.setAttribute('text', 'Perform new task...');
+  button.setAttribute('text', 'Create new task...');
+  button.setAttribute('web-class', 'taskButton');
   button.setAttribute('callbackKey', 'CREATE_TASK');
 
   workspace.registerButtonCallback('CREATE_TASK', function(button) {

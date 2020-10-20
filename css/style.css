@@ -29,3 +29,7 @@ html {
 #rightdiv {
     width: calc(48vw);
 }
+
+.taskButton {
+    fill: #5C9FA6;
+}
