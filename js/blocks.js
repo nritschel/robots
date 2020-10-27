@@ -11,6 +11,34 @@ Blockly.defineBlocksWithJsonArray([
         "helpUrl": ""
     },
     {
+        "type": "custom_triggerstart",
+        "message0": "If idle and %1 Button is activated",
+        "args0": [
+            {
+                "type": "field_dropdown",
+                "name": "TRIGGER",
+                "options": [
+                [
+                    "Red",
+                    "RED"
+                ],
+                [
+                    "Green",
+                    "GREEN"
+                ],
+                [
+                    "Blue",
+                    "BLUE"
+                ]
+                ]
+            }
+        ],
+        "nextStatement": null,
+        "colour": 15,
+        "tooltip": "",
+        "helpUrl": ""
+    },
+    {
         "type": "custom_taskheader",
         "message0": "At %1: %2",
         "args0": [
@@ -223,6 +251,12 @@ var flyoutCategory = function(workspace) {
   return xmlList;
 };
 
+var triggersFlyoutCategory = function(workspace) {
+  var blockList = triggersFlyoutCategoryBlocks(workspace);
+  var xmlList = blockList;
+  return xmlList;
+};
+
 var flyoutCategoryBlocks = function(workspace) {
   var taskList = workspace.getVariablesOfType('');
 
@@ -233,6 +267,44 @@ var flyoutCategoryBlocks = function(workspace) {
     block.setAttribute('type', 'custom_task');
     block.appendChild(
         generateTaskFieldDom(task));
+    xmlList.push(block);
+  }
+  return xmlList;
+};
+
+
+var triggersFlyoutCategoryBlocks = function(workspace) {
+  var xmlList = [];
+  if (!workspace.getAllBlocks().find(block => block.type == 'custom_start')) {
+    var block = Blockly.utils.xml.createElement('block');
+    block.setAttribute('type', 'custom_start');
+    xmlList.push(block);
+  }
+  if (!workspace.getAllBlocks().find(block => block.type == 'custom_triggerstart' && block.getFieldValue('TRIGGER') == 'RED')) {
+    var block = Blockly.utils.xml.createElement('block');
+    block.setAttribute('type', 'custom_triggerstart');
+    var field = Blockly.utils.xml.createElement('field');
+    field.setAttribute('name', 'TRIGGER');
+    field.innerHTML = 'RED';
+    block.appendChild(field);
+    xmlList.push(block);
+  }
+  if (!workspace.getAllBlocks().find(block => block.type == 'custom_triggerstart' && block.getFieldValue('TRIGGER') == 'GREEN')) {
+    var block = Blockly.utils.xml.createElement('block');
+    block.setAttribute('type', 'custom_triggerstart');
+    var field = Blockly.utils.xml.createElement('field');
+    field.setAttribute('name', 'TRIGGER');
+    field.innerHTML = 'GREEN';
+    block.appendChild(field);
+    xmlList.push(block);
+  }
+  if (!workspace.getAllBlocks().find(block => block.type == 'custom_triggerstart' && block.getFieldValue('TRIGGER') == 'BLUE')) {
+    var block = Blockly.utils.xml.createElement('block');
+    block.setAttribute('type', 'custom_triggerstart');
+    var field = Blockly.utils.xml.createElement('field');
+    field.setAttribute('name', 'TRIGGER');
+    field.innerHTML = 'BLUE';
+    block.appendChild(field);
     xmlList.push(block);
   }
   return xmlList;

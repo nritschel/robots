@@ -14,54 +14,78 @@ var leftWorkspace = Blockly.inject('leftdiv',
 
 var workspaceBlocks = document.getElementById("workspaceBlocks");
 Blockly.Xml.domToWorkspace(workspaceBlocks, leftWorkspace);
-leftWorkspace.getAllBlocks().forEach(block => { block.setMovable(false); block.setDeletable(false); block.setEditable(false) });
 
 leftWorkspace.registerToolboxCategoryCallback(
   'TASKS', flyoutCategory);
+leftWorkspace.registerToolboxCategoryCallback(
+  'TRIGGERS', triggersFlyoutCategory);
 
+Blockly.ContextMenuRegistry.registry.unregister('blockDuplicate')
+Blockly.ContextMenuRegistry.registry.unregister('blockCollapseExpand')
+Blockly.ContextMenuRegistry.registry.unregister('collapseWorkspace')
+Blockly.ContextMenuRegistry.registry.unregister('expandWorkspace')
+
+
+var currentSelectedBlock = null;
 var currentRightDiv = null;
+var currentRightWorkspace = null
 
 function onTaskSelected(event) {
   if (event.type == Blockly.Events.UI && event.element == 'selected') {
     var selectedBlock = leftWorkspace.getBlockById(event.newValue);
-    if (selectedBlock && selectedBlock.type == 'custom_task') {
+    if (selectedBlock && selectedBlock.type == 'custom_task' && selectedBlock != currentSelectedBlock) {
+      currentSelectedBlock = selectedBlock;
+      leftWorkspace.highlightBlock(selectedBlock.id);
       if (currentRightDiv) {
-        currentRightDiv.style.display = 'none';
-      }
-      var taskName = selectedBlock.getFieldValue("TASK");
-      if (document.getElementById("__" + taskName + "div")) {
-        currentRightDiv = document.getElementById("__" + taskName + "div");
-        currentRightDiv.style.display = 'block';
+        $('#animatediv').animate({opacity: '0'}, "normal", doTaskSelected);
       }
       else {
-        currentRightDiv = document.createElement('div');
-        currentRightDiv.id = "__" + taskName + "div";
-        currentRightDiv.classList.add('workspace');
-        document.getElementById('rightdiv').appendChild(currentRightDiv);
-        var rightWorkspace = Blockly.inject("__" + taskName + "div",
-          { media: 'blockly/media/',
-            toolbox: toolboxRight,
-            trashcan: true,
-            move:{
-              scrollbars: false,
-              drag: false,
-              wheel: false}
-        });
-        var block = Blockly.utils.xml.createElement('block');
-        block.setAttribute('type', 'custom_taskheader');
-        block.setAttribute('x', '38');
-        block.setAttribute('y', '38');
-        var field = Blockly.utils.xml.createElement('field');
-        field.setAttribute('name', 'TASK');
-        field.setAttribute('id', selectedBlock.getFieldValue("TASK"));
-        var name = Blockly.utils.xml.createTextNode(selectedBlock.getFieldValue("TASK"));
-        field.appendChild(name);
-        block.appendChild(field);
-        Blockly.Xml.domToWorkspace(Blockly.Xml.textToDom('<xml xmlns="https://developers.google.com/blockly/xml">' + Blockly.Xml.domToText(block) + '</xml>'), rightWorkspace);
-        rightWorkspace.getAllBlocks().forEach(block => { block.setMovable(false); block.setDeletable(false); block.setEditable(false) });
+        document.getElementById('animatediv').style.opacity = "0";
+        doTaskSelected();
       }
     }
-  } 
+  }
 }
+
+function doTaskSelected() {
+  if (currentRightDiv) {
+    currentRightDiv.style.display = 'none';
+  }
+  var taskName = currentSelectedBlock.getFieldValue("TASK");
+  if (document.getElementById("__" + taskName + "div")) {
+    currentRightDiv = document.getElementById("__" + taskName + "div");
+    currentRightDiv.style.display = 'block';
+    Blockly.svgResize(currentRightWorkspace);
+  }
+  else {
+    currentRightDiv = document.createElement('div');
+    currentRightDiv.id = "__" + taskName + "div";
+    currentRightDiv.classList.add('workspace');
+    document.getElementById('animatediv').appendChild(currentRightDiv);
+    currentRightWorkspace = Blockly.inject("__" + taskName + "div",
+      { media: 'blockly/media/',
+        toolbox: toolboxRight,
+        trashcan: true,
+        move:{
+          scrollbars: false,
+          drag: false,
+          wheel: false}
+    });
+    var block = Blockly.utils.xml.createElement('block');
+    block.setAttribute('type', 'custom_taskheader');
+    block.setAttribute('x', '38');
+    block.setAttribute('y', '38');
+    var field = Blockly.utils.xml.createElement('field');
+    field.setAttribute('name', 'TASK');
+    field.setAttribute('id', currentSelectedBlock.getFieldValue("TASK"));
+    var name = Blockly.utils.xml.createTextNode(currentSelectedBlock.getFieldValue("TASK"));
+    field.appendChild(name);
+    block.appendChild(field);
+    Blockly.Xml.domToWorkspace(Blockly.Xml.textToDom('<xml xmlns="https://developers.google.com/blockly/xml">' + Blockly.Xml.domToText(block) + '</xml>'), currentRightWorkspace);
+    currentRightWorkspace.getAllBlocks().forEach(block => { block.setDeletable(false); block.setEditable(false) });
+  }
+  $('#animatediv').animate({opacity: '1'}, "normal");
+}
+
 
 leftWorkspace.addChangeListener(onTaskSelected);

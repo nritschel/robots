@@ -4,12 +4,16 @@
   <meta charset="utf-8">
   <title>Programming language for two-armed robots.</title>
   <link rel="stylesheet" href="css/style.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 </head>
 <body>
   <!-- HTML Elements -->
   <div class="container">
     <div id="leftdiv" class="workspace"></div>
-    <div id="rightdiv" class="workspace"></div>
+    <div id="rightdiv" class="workspace">
+      <div id="animatediv" style="margin-left: 0px">
+      </div>
+    </div>
   </div>
 
   <!-- Starting configuration -->
@@ -18,8 +22,7 @@
   </xml>
 
   <xml xmlns="https://developers.google.com/blockly/xml" id="toolboxLeft" style="display: none">
-    <category name="Triggers" colour="#A66E5C">
-      <block type="custom_start"></block>
+    <category name="Triggers" colour="#A66E5C" custom="TRIGGERS">
     </category>
     <category name="Tasks" colour="#5C9FA6" custom="TASKS">
     </category>
@@ -39,7 +42,7 @@
   </xml>
 
   <!-- Javascript Code -->
-  <script src="blockly/blockly_compressed.js"></script>
+  <script src="blockly/blockly_uncompressed.js"></script>
   <script src="blockly/blocks_compressed.js"></script>
   <script src="blockly/msg/js/en.js"></script>
   <script src="js/blocks.js"></script>
