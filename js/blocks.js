@@ -51,10 +51,14 @@ Blockly.defineBlocksWithJsonArray([
                     "NONE"
                 ],
                 [
-                    "My Site",
-                    "MYSITE"
+                    "Pick-up Site",
+                    "PICKUPSITE"
+                ],
+                [
+                    "Drop-off Site",
+                    "DROPOFFSITE"
                 ]
-                ]
+                ]                
             },
             {
                 "type": "field_label_serializable",
@@ -82,8 +86,12 @@ Blockly.defineBlocksWithJsonArray([
                     "NONE"
                 ],
                 [
-                    "My Site",
-                    "MYSITE"
+                    "Pick-up Site",
+                    "PICKUPSITE"
+                ],
+                [
+                    "Drop-off Site",
+                    "DROPOFFSITE"
                 ]
                 ]
             },
@@ -114,8 +122,12 @@ Blockly.defineBlocksWithJsonArray([
                     "NONE"
                 ],
                 [
-                    "My Site",
-                    "MYSITE"
+                    "Pick-up Site",
+                    "PICKUPSITE"
+                ],
+                [
+                    "Drop-off Site",
+                    "DROPOFFSITE"
                 ]
                 ]
             }
@@ -151,9 +163,8 @@ Blockly.defineBlocksWithJsonArray([
                 ]
             },
             {
-                "type": "field_variable",
+                "type": "input_value",
                 "name": "LOCATION",
-                "variable": "[location]"
             }
         ],
         "inputsInline": false,
@@ -162,7 +173,32 @@ Blockly.defineBlocksWithJsonArray([
         "colour": 50,
         "tooltip": "",
         "helpUrl": "",
-        "mutator": "move_mutator"
+    },
+    // Location
+    {
+        "type": "custom_location",
+        "message0": "%1",
+        "args0": [
+            {
+                "type": "field_label_serializable",
+                "name": "LOCATION",
+            }
+        ],
+        "inputsInline": false,
+        "output": null,
+        "colour": 30,
+        "tooltip": "",
+        "helpUrl": "",
+    },
+    // Dummy location
+    {
+        "type": "custom_dummylocation",
+        "message0": "<somewhere>",
+        "inputsInline": false,
+        "output": null,
+        "colour": 30,
+        "tooltip": "",
+        "helpUrl": "",
     },
     // Open hand
     {
@@ -233,7 +269,7 @@ var createTaskButtonHandler = function(
 };
 
 
-var flyoutCategory = function(workspace) {
+var flyoutTaskCategory = function(workspace) {
   var xmlList = [];
   var button = document.createElement('button');
   button.setAttribute('text', 'Create new task...');
@@ -246,7 +282,7 @@ var flyoutCategory = function(workspace) {
 
   xmlList.push(button);
 
-  var blockList = flyoutCategoryBlocks(workspace);
+  var blockList = flyoutTaskCategoryBlocks(workspace);
   xmlList = xmlList.concat(blockList);
   return xmlList;
 };
@@ -257,7 +293,7 @@ var triggersFlyoutCategory = function(workspace) {
   return xmlList;
 };
 
-var flyoutCategoryBlocks = function(workspace) {
+var flyoutTaskCategoryBlocks = function(workspace) {
   var taskList = workspace.getVariablesOfType('');
 
   var xmlList = [];
@@ -319,43 +355,87 @@ var generateTaskFieldDom = function(task) {
   return field;
 };
 
-// Controls whether move blocks have a value input at the end.
 
-var moveMixin = {
-    mutationToDom: function() {
-        var container = document.createElement('mutation');
-        var toolbox = (this.getInputTargetBlock('CONNECTION') != null);
-        container.setAttribute('toolbox', toolbox);
-        return container;
-    },
+var createLocationButtonHandler = function(
+    workspace, opt_callback) {
+  // This function needs to be named so it can be called recursively.
+  var promptAndCheckWithAlert = function(defaultName) {
+    Blockly.Variables.promptName("Please enter a name for the new location:", defaultName,
+        function(text) {
+          if (text) {
+            var existing =
+                nameUsedWithAnyType(text, workspace);
+            if (existing) {
+              var msg = "A location with name '%1' already exists!".replace(
+                '%1', existing.name);              
+              Blockly.alert(msg,
+                  function() {
+                    promptAndCheckWithAlert(text);  // Recurse
+                  });
+            } else {
+              // No conflict
+              workspace.createVariable(text, '');
+              if (opt_callback) {
+                opt_callback(text);
+              }
+            }
+          } else {
+            // User canceled prompt.
+            if (opt_callback) {
+              opt_callback(null);
+            }
+          }
+        });
+  };
+  promptAndCheckWithAlert('');
+};
 
-    domToMutation: function(xmlElement) {
-        var toolbox = (xmlElement.getAttribute('toolbox') == 'true');
-        this.updateShape_(toolbox);
-    },
 
-    updateShape_: function(toolbox) {
-        var speed = new Blockly.FieldDropdown([["quickly","QUICK"], ["moderately","MODERATE"], ["slowly","SLOW"]]);
-        var location = new Blockly.FieldVariable("[location]");
+var flyoutLocationCategory = function(workspace) {
+  var xmlList = [];
+  var button = document.createElement('button');
+  button.setAttribute('text', 'Create new location...');
+  button.setAttribute('web-class', 'locationButton');
+  button.setAttribute('callbackKey', 'CREATE_LOCATION');
 
-        if (toolbox) {
-            this.removeInput('', true);
-            if (!this.getInput('CONNECTION'))
-            this.appendValueInput('CONNECTION')
-                .appendField("Move arm ")
-                .appendField(speed, 'SPEED')
-                .appendField(" to ")
-                .appendField(location, 'LOCATION');
-        } else {
-            this.removeInput('CONNECTION', true);
-            if (!this.getInput(''))
-            this.appendDummyInput('')
-                .appendField("Move arm ")
-                .appendField(speed, 'SPEED')
-                .appendField(" to ")
-                .appendField(location, 'LOCATION');
-        }
-    }
-}
+  workspace.registerButtonCallback('CREATE_LOCATION', function(button) {
+    createLocationButtonHandler(button.getTargetWorkspace());
+  });
 
-Blockly.Extensions.registerMutator("move_mutator", moveMixin);
+  xmlList.push(button);
+
+  var blockList = flyoutLocationCategoryBlocks(workspace);
+  xmlList = xmlList.concat(blockList);
+  return xmlList;
+};
+
+var triggersLocationFlyoutCategory = function(workspace) {
+  var blockList = triggersLocationFlyoutCategoryBlocks(workspace);
+  var xmlList = blockList;
+  return xmlList;
+};
+
+var flyoutLocationCategoryBlocks = function(workspace) {
+  var taskList = workspace.getVariablesOfType('');
+
+  var xmlList = [];
+  for (var i = 0, task; (task = taskList[i]); i++) {
+    // New variables are added to the end of the variableModelList.
+    var block = Blockly.utils.xml.createElement('block');
+    block.setAttribute('type', 'custom_location');
+    block.appendChild(
+        generateLocationFieldDom(task));
+    xmlList.push(block);
+  }
+  return xmlList;
+};
+
+var generateLocationFieldDom = function(task) {
+  var field = Blockly.utils.xml.createElement('field');
+  field.setAttribute('name', 'LOCATION');
+  field.setAttribute('id', task.getId());
+  var name = Blockly.utils.xml.createTextNode(task.name);
+  field.appendChild(name);
+  return field;
+};
+

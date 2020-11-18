@@ -16,7 +16,7 @@ var workspaceBlocks = document.getElementById("workspaceBlocks");
 Blockly.Xml.domToWorkspace(workspaceBlocks, leftWorkspace);
 
 leftWorkspace.registerToolboxCategoryCallback(
-  'TASKS', flyoutCategory);
+  'TASKS', flyoutTaskCategory);
 leftWorkspace.registerToolboxCategoryCallback(
   'TRIGGERS', triggersFlyoutCategory);
 
@@ -29,8 +29,12 @@ Blockly.ContextMenuRegistry.registry.unregister('expandWorkspace')
 var currentSelectedBlock = null;
 var currentRightDiv = null;
 var currentRightWorkspace = null
+var rightWorkspaces = [];
 
 function onTaskSelected(event) {
+  if (event.type == Blockly.Events.CHANGE && event.blockId == currentSelectedBlock.id) {
+    currentRightWorkspace.getAllBlocks().find(block => block.type == 'custom_taskheader').getField("SITE").setValue(currentSelectedBlock.getField("SITE").getValue());
+  }
   if (event.type == Blockly.Events.UI && event.element == 'selected') {
     var selectedBlock = leftWorkspace.getBlockById(event.newValue);
     if (selectedBlock && selectedBlock.type == 'custom_task' && selectedBlock != currentSelectedBlock) {
@@ -47,6 +51,12 @@ function onTaskSelected(event) {
   }
 }
 
+function onTaskHeaderChanged(event) {
+  if (event.type == Blockly.Events.CHANGE && event.blockId == currentRightWorkspace.getAllBlocks().find(block => block.type == 'custom_taskheader').id) {
+    currentSelectedBlock.getField("SITE").setValue(currentRightWorkspace.getAllBlocks().find(block => block.type == 'custom_taskheader').getField("SITE").getValue());
+  }
+}
+
 function doTaskSelected() {
   if (currentRightDiv) {
     currentRightDiv.style.display = 'none';
@@ -55,6 +65,7 @@ function doTaskSelected() {
   if (document.getElementById("__" + taskName + "div")) {
     currentRightDiv = document.getElementById("__" + taskName + "div");
     currentRightDiv.style.display = 'block';
+    currentRightWorkspace = rightWorkspaces[taskName]; 
     Blockly.svgResize(currentRightWorkspace);
   }
   else {
@@ -71,6 +82,8 @@ function doTaskSelected() {
           drag: false,
           wheel: false}
     });
+    rightWorkspaces[taskName] = currentRightWorkspace;
+    currentRightWorkspace.registerToolboxCategoryCallback('LOCATIONS', flyoutLocationCategory);
     var block = Blockly.utils.xml.createElement('block');
     block.setAttribute('type', 'custom_taskheader');
     block.setAttribute('x', '38');
@@ -82,8 +95,11 @@ function doTaskSelected() {
     field.appendChild(name);
     block.appendChild(field);
     Blockly.Xml.domToWorkspace(Blockly.Xml.textToDom('<xml xmlns="https://developers.google.com/blockly/xml">' + Blockly.Xml.domToText(block) + '</xml>'), currentRightWorkspace);
-    currentRightWorkspace.getAllBlocks().forEach(block => { block.setDeletable(false); block.setEditable(false) });
+    currentRightWorkspace.getAllBlocks().forEach(block => { block.setDeletable(false); });
+    currentRightWorkspace.addChangeListener(onTaskHeaderChanged);
   }
+  currentRightWorkspace.getAllBlocks().find(block => block.type == 'custom_taskheader').getField("SITE").setValue(currentSelectedBlock.getField("SITE").getValue());
+
   $('#animatediv').animate({opacity: '1'}, "normal");
 }
 

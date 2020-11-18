@@ -29,12 +29,19 @@
   </xml>
 
   <xml xmlns="https://developers.google.com/blockly/xml" id="toolboxRight" style="display: none">
-    <category name="Move" colour="#968e4f">
-      <block type="custom_move"></block>
-    </category>
     <category name="Grip" colour="#5b67a5">
       <block type="custom_open"></block>
       <block type="custom_close"></block>
+    </category>
+    <category name="Move" colour="#968e4f">
+      <block type="custom_move">
+        <value name="LOCATION">
+          <shadow type="custom_dummylocation">
+          </shadow>
+        </value>
+      </block>
+    </category>
+    <category name="Locations" colour="#A08260" custom="LOCATIONS">
     </category>
     <category name="Loops" colour="#5ba55b">
       <block type="controls_repeat"></block>
